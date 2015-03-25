@@ -129,6 +129,7 @@ def stringify_attr(config, pkg, attr):
         if data is None:
             return 'MISSING'
         if attr == 'files':
+            data = [x for x in data if x.is_file]
             def _format(node):
                 return node.filename
         else:
@@ -271,6 +272,7 @@ def format_attr(config, out, pkg, attr):
             out.write('MISSING')
             return
         if attr == 'files':
+            data = [x for x in data if x.is_file]
             def _format(out, node):
                 out.write(node.filename, autoline=False)
         else:

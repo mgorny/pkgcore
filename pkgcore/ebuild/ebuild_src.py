@@ -100,19 +100,22 @@ def generate_fetchables(self, allow_missing_checksums=False,
 # utility func.
 def create_fetchable_from_uri(pkg, chksums, ignore_missing_chksums, ignore_unknown_mirrors,
                               mirrors, default_mirrors, common_files, uri, filename=None):
+    is_psfetch = uri.startswith('ps://')
     if filename is None:
-        filename = os.path.basename(uri)
+        filename = os.path.basename(uri) if not is_psfetch else uri
 
     preexisting = common_files.get(filename)
 
     if preexisting is None:
-        if filename not in chksums and not ignore_missing_chksums:
+        if filename not in chksums and not ignore_missing_chksums and not is_psfetch:
             raise MissingChksum(filename)
         uris = uri_list(filename)
     else:
         uris = preexisting.uri
 
-    if filename != uri:
+    if is_psfetch:
+        uris.add_uri(uri)
+    elif filename != uri:
         if preexisting is None:
             if "primaryuri" not in pkg.restrict:
                 if default_mirrors and "mirror" not in pkg.restrict:
@@ -136,7 +139,8 @@ def create_fetchable_from_uri(pkg, chksums, ignore_missing_chksums, ignore_unkno
                 uris.add_mirror(default_mirrors)
 
     if preexisting is None:
-        common_files[filename] = fetchable(filename, uris, chksums.get(filename))
+        common_files[filename] = fetchable(filename, uris, chksums.get(filename),
+                is_file=not is_psfetch)
     return common_files[filename]
 
 def get_parsed_eapi(self):

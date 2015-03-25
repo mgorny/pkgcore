@@ -39,6 +39,8 @@ class fetch_base(object):
         return True
 
     def fetch_one(self, fetchable, observer):
+        if not fetchable.is_file:
+            return True
         if fetchable.filename in self._basenames:
             return True
         # fetching files without uri won't fly
