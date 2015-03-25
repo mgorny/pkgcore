@@ -295,6 +295,8 @@ class distfiles_usage_kls(histo_data):
                 if not options.include_nonmirrored and 'mirror' in pkg.restrict:
                     continue
                 for fetchable in iflatten_instance(pkg.fetchables, fetch.fetchable):
+                    if not fetchable.is_file:
+                        continue
                     owners[fetchable.filename].add(key)
                     items[fetchable.filename] = fetchable.chksums.get("size", 0)
 

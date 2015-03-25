@@ -82,6 +82,8 @@ class repo_operations(_repo_ops.operations):
 
                     fetchables = pkg_ops._mirror_op.verified_files
                     for path, fetchable in fetchables.iteritems():
+                        if not fetchable.is_file:
+                            continue
                         d = dict(zip(required, get_chksums(path, *required)))
                         fetchable.chksums = d
                     # should report on conflicts here...

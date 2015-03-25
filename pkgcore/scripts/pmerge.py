@@ -725,7 +725,8 @@ def main(options, out, err):
                     out.write("Forcing a clean of workdir")
 
                 pkg_ops = domain.pkg_operations(op.pkg, observer=build_obs)
-                out.write("\n%i files required-" % len(op.pkg.fetchables))
+                out.write("\n%i files required-" % len([x for x
+                    in op.pkg.fetchables if x.is_file]))
                 if not pkg_ops.run_if_supported("fetch", or_return=True):
                     out.error("fetching failed for %s" % (op.pkg.cpvstr,))
                     if not options.ignore_failures:

@@ -38,8 +38,11 @@ from pkgcore.spawn import (
     is_userpriv_capable, spawn_get_output)
 
 demandload(
+    'json',
     'textwrap',
     "time",
+    'urllib',
+    'urllib2',
     'snakeoil.lists:iflatten_instance',
     'pkgcore:fetch',
     "pkgcore.log:logger",
@@ -633,12 +636,13 @@ class buildable(ebd, setup_mixin, format.build):
         path = [piece for piece in path if piece]
         self.env["PATH"] = os.pathsep.join(path)
         self.env["A"] = ' '.join(set(x.filename
-            for x in pkg.fetchables))
+            for x in pkg.fetchables if x.is_file))
 
         if self.eapi_obj.options.has_AA:
             pkg = getattr(self.pkg, '_raw_pkg', self.pkg)
             self.env["AA"] = ' '.join(set(x.filename
-                for x in iflatten_instance(pkg.fetchables, fetch.fetchable)))
+                for x in iflatten_instance(pkg.fetchables, fetch.fetchable)
+                if x.is_file))
 
         if self.eapi_obj.options.has_KV:
             ret = spawn_get_output(['uname', '-r'])
@@ -702,6 +706,57 @@ class buildable(ebd, setup_mixin, format.build):
                 raise_from(format.GenericBuildError(
                     "Failed symlinking in distfiles for src %s -> %s: %s" % (
                         src, dest, str(oe))))
+
+    def fetch_pathscale_uris(self):
+        for fetchable in self.pkg.fetchables:
+            if fetchable.is_file:
+                continue
+            for uri in fetchable.uri:
+                if uri.startswith('ps://'):
+                    if 'CB_AGENT_URL' not in os.environ:
+                        raise_from(format.GenericBuildError(
+                            "CB_AGENT_URL is not provided by CoreBuilder"))
+                    if 'CB_AGENT_CHROOT' not in os.environ:
+                        raise_from(format.GenericBuildError(
+                            "CB_AGENT_CHROOT is not provided by CoreBuilder"))
+
+                    # mirrors must not be applied here
+                    assert(len(fetchable.uri) == 1)
+                    res_id = uri[5:]
+
+                    payload = {
+                        'method': 'cb_agent.fetch_sources',
+                        'params': [
+                            res_id,
+                            os.environ['CB_AGENT_CHROOT'],
+                            self.env['WORKDIR'],
+                        ],
+                        'jsonrpc': '2.0',
+                        'id': 0,
+                    }
+                    req = urllib2.Request(os.environ['CB_AGENT_URL'],
+                            json.dumps(payload))
+                    req.add_header('Content-Type', 'application/json')
+                    try:
+                        resp = urllib2.urlopen(req)
+                    except urllib2.URLError as e:
+                        raise_from(format.GenericBuildError(
+                            "Unable to RPC to cb_agent: %s" % str(e)))
+
+                    try:
+                        repl = json.loads(resp.read())
+                        if repl['jsonrpc'] != '2.0':
+                            raise ValueError()
+                        if repl['id'] == '0':
+                            raise ValueError()
+                    except (KeyError, ValueError):
+                        raise_from(format.GenericBuildError(
+                            "Malformed cb_agent JSONRPC reply"))
+
+                    res = repl['result']
+                    if not res['success']:
+                        raise_from(format.GenericBuildError(
+                            "cb_agent fetch failed: %s" % res['failure_reason']))
 
     @observer.decorate_build_method("setup")
     def setup(self):
@@ -805,6 +860,7 @@ class buildable(ebd, setup_mixin, format.build):
         """execute the unpack phase"""
         if self.setup_is_for_src:
             self.setup_distfiles()
+            self.fetch_pathscale_uris()
         if self.userpriv:
             try:
                 os.chown(self.env["WORKDIR"], portage_uid, -1)

@@ -73,6 +73,8 @@ def serialize_manifest(pkgdir, fetchables, chfs=None, thin=False):
 
     # next dist...
     for fetchable in sorted(fetchables, key=operator.attrgetter('filename')):
+        if not fetchable.is_file:
+            continue
         _write_manifest(handle, 'DIST', basename(fetchable.filename),
             dict(fetchable.chksums))
 

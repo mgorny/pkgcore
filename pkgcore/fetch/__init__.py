@@ -14,11 +14,11 @@ class fetchable(object):
 
     """class representing uri sources for a file and chksum information."""
 
-    __slots__ = ("filename", "uri", "chksums")
+    __slots__ = ("filename", "uri", "chksums", "is_file")
     __attr_comparison__ = __slots__
     __metaclass__ = generic_equality
 
-    def __init__(self, filename, uri=(), chksums=None):
+    def __init__(self, filename, uri=(), chksums=None, is_file=True):
         """
         :param filename: filename...
         :param uri: either None (no uri),
@@ -32,6 +32,7 @@ class fetchable(object):
         else:
             self.chksums = chksums
         self.filename = filename
+        self.is_file = is_file
 
     def __str__(self):
         return "('%s', '%s', (%s))" % (
