@@ -36,10 +36,9 @@ from pkgcore.spawn import (
 
 demandload(
     'json',
+    'struct',
     'textwrap',
     "time",
-    'urllib',
-    'urllib2',
     'snakeoil.lists:iflatten_instance',
     'pkgcore:fetch',
     "pkgcore.log:logger",
@@ -680,50 +679,53 @@ class buildable(ebd, setup_mixin, format.build):
                 continue
             for uri in fetchable.uri:
                 if uri.startswith('ps://'):
-                    if 'CB_AGENT_URL' not in os.environ:
+                    if 'CB_AGENT_RPC_FDS' not in os.environ:
                         raise_from(format.GenericBuildError(
-                            "CB_AGENT_URL is not provided by CoreBuilder"))
-                    if 'CB_AGENT_CHROOT' not in os.environ:
-                        raise_from(format.GenericBuildError(
-                            "CB_AGENT_CHROOT is not provided by CoreBuilder"))
+                            "CB_AGENT_RPC_FDS are not provided by cb-agent"))
+
+                    class JsonRPC(object):
+                        def __init__(self, in_pipe, out_pipe):
+                            self.in_pipe_ = in_pipe
+                            self.out_pipe_ = out_pipe
+
+                        def read(self):
+                            szs = os.read(self.in_pipe_, 4)
+                            sz, = struct.unpack('>L', szs)
+                            s = os.read(self.in_pipe_, sz)
+                            return json.loads(s)
+
+                        def write(self, val):
+                            s = json.dumps(val)
+                            szs = struct.pack('>L', len(s))
+                            os.write(self.out_pipe_, szs)
+                            os.write(self.out_pipe_, s)
+
+                    rpc_fds = [int(x) for x in os.environ['CB_AGENT_RPC_FDS'].split()]
+                    rpc = JsonRPC(*rpc_fds)
 
                     # mirrors must not be applied here
                     assert(len(fetchable.uri) == 1)
                     res_id = uri[5:]
 
-                    payload = {
-                        'method': 'cb_agent.fetch_sources',
-                        'params': [
-                            res_id,
-                            os.environ['CB_AGENT_CHROOT'],
-                            self.env['WORKDIR'],
-                        ],
-                        'jsonrpc': '2.0',
-                        'id': 0,
+                    request = {
+                        'status': 'request',
+                        'action': 'fetch_sources',
+                        'repo_id': res_id,
+                        'dest': self.env['WORKDIR'],
                     }
-                    req = urllib2.Request(os.environ['CB_AGENT_URL'],
-                            json.dumps(payload))
-                    req.add_header('Content-Type', 'application/json')
-                    try:
-                        resp = urllib2.urlopen(req)
-                    except urllib2.URLError as e:
-                        raise_from(format.GenericBuildError(
-                            "Unable to RPC to cb_agent: %s" % str(e)))
+                    rpc.write(request)
 
                     try:
-                        repl = json.loads(resp.read())
-                        if repl['jsonrpc'] != '2.0':
-                            raise ValueError()
-                        if repl['id'] == '0':
-                            raise ValueError()
-                    except (KeyError, ValueError):
+                        repl = rpc.read()
+                        assert(repl['action'] == 'fetch_sources')
+                        assert(repl['repo_id'] == res_id)
+                    except (KeyError, ValueError, AssertionError):
                         raise_from(format.GenericBuildError(
                             "Malformed cb_agent JSONRPC reply"))
 
-                    res = repl['result']
-                    if not res['success']:
+                    if repl['status'] != 'success':
                         raise_from(format.GenericBuildError(
-                            "cb_agent fetch failed: %s" % res['failure_reason']))
+                            "cb-agent fetch failed: %s" % repl['error']))
 
     @observer.decorate_build_method("setup")
     def setup(self):
