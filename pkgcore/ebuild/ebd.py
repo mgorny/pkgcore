@@ -712,6 +712,8 @@ class buildable(ebd, setup_mixin, format.build):
                         'action': 'fetch_sources',
                         'repo_id': res_id,
                         'dest': self.env['WORKDIR'],
+                        'uid': portage_uid,
+                        'gid': portage_gid,
                     }
                     rpc.write(request)
 
