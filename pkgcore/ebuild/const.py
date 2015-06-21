@@ -7,7 +7,6 @@ ebuild internal constants
 
 import os
 from os.path import join as pjoin
-import sys
 from pkgcore import const
 
 
