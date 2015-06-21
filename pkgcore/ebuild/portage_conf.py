@@ -565,8 +565,7 @@ def config_from_make_conf(location="/etc/", profile_override=None, **kwargs):
     # now add the fetcher- we delay it till here to clean out the environ
     # it passes to the command.
     # *everything* in the conf_dict must be str values also.
-    distdir = normpath(os.environ.get(
-        "DISTDIR", conf_dict.pop("DISTDIR")))
+    distdir = normpath(os.environ.get("DISTDIR", conf_dict.pop("DISTDIR")))
     add_fetcher(new_config, conf_dict, distdir)
 
     # finally... domain.
