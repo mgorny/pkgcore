@@ -132,13 +132,13 @@ def _sort_eclasses(config, raw_repo, eclasses):
             missing = ', '.join(sorted(missing))
             raise Exception(
                 "repo %r at path %r has masters %s; we cannot find "
-                "the following repositories: %s"
+                "the following repos: %s"
                 % (raw_repo.repo_id, loc, ', '.join(map(repr, masters)), missing))
         eclasses = [repo_map[x] for x in masters]
 
-    # add the repositories eclasses directories if it's not specified.
-    # do it in this fashion so that the repositories masters can actually interpose
-    # this repositories eclasses in between others.
+    # add the repo's eclasses directories if it's not specified.
+    # do it in this fashion so that the repo's masters can actually interpose
+    # this repo's eclasses in between others.
     # admittedly an odd thing to do, but it has some benefits
     if loc not in eclasses:
         eclasses.append(loc)

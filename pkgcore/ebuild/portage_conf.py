@@ -472,7 +472,7 @@ def config_from_make_conf(location="/etc/", profile_override=None, **kwargs):
     new_config['repo-stack'] = basics.FakeIncrementalDictConfigSection(
         my_convert_hybrid, {
             'class': 'pkgcore.repository.multiplex.config_tree',
-            'repositories': tuple(repos)})
+            'repos': tuple(repos)})
 
     new_config['vuln'] = basics.AutoConfigSection({
         'class': SecurityUpgradesViaProfile,
@@ -571,7 +571,7 @@ def config_from_make_conf(location="/etc/", profile_override=None, **kwargs):
     # finally... domain.
     conf_dict.update({
         'class': 'pkgcore.ebuild.domain.domain',
-        'repositories': tuple(repos),
+        'repos': tuple(repos),
         'fetcher': 'fetcher',
         'default': True,
         'vdb': ('vdb',),
