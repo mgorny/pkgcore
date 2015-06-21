@@ -372,9 +372,6 @@ def config_from_make_conf(location="/etc/", profile_override=None, **kwargs):
             raise_from(errors.ParsingError(
                 "failed to find a usable make.globals"))
     load_make_config(
-        conf_dict, pjoin(base_path, 'make.conf'), required=False,
-        allow_sourcing=True, incrementals=True)
-    load_make_config(
         conf_dict, pjoin(portage_base, 'make.conf'), required=False,
         allow_sourcing=True, incrementals=True)
 

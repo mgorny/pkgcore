@@ -15,6 +15,9 @@ pkgcore master
   /var/gentoo/dist, /var/gentoo/pkgs, and /var/gentoo/repos/* (e.g. the main
   gentoo repo would be at /var/gentoo/repos/gentoo), respectively.
 
+- Drop deprecated support for /etc/make.conf, only /etc/portage/make.conf is
+  used now.
+
 
 ------------------------
 pkgcore 0.9 (2015-04-01)
