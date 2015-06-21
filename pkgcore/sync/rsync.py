@@ -45,7 +45,7 @@ class rsync_syncer(base.ExternalSyncer):
     @classmethod
     def parse_uri(cls, raw_uri):
         if not raw_uri.startswith("rsync://") and \
-            not raw_uri.startswith("rsync+"):
+                not raw_uri.startswith("rsync+"):
             raise base.uri_exception(raw_uri, "doesn't start with rsync:// nor rsync+")
 
         if raw_uri.startswith("rsync://"):
@@ -102,7 +102,7 @@ class rsync_syncer(base.ExternalSyncer):
             af_fam = socket.AF_INET6
         try:
             for ipaddr in socket.getaddrinfo(self.hostname, None, af_fam,
-                socket.SOCK_STREAM):
+                    socket.SOCK_STREAM):
                 if ipaddr[0] == socket.AF_INET6:
                     yield "[%s]" % ipaddr[4][0]
                 else:
