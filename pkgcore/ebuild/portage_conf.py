@@ -434,33 +434,35 @@ def config_from_make_conf(location="/etc/", profile_override=None, **kwargs):
 
     repo_map = {}
 
-    for tree_loc in repos:
+    for repo_path in repos:
         # XXX: Hack for portage-2 profile format support.
-        repo_config = RepoConfig(tree_loc)
+        repo_config = RepoConfig(repo_path)
         repo_map[repo_config.repo_id] = repo_config
 
         # repo configs
         conf = {
             'class': 'pkgcore.ebuild.repo_objs.RepoConfig',
-            'location': tree_loc,
+            'location': repo_path,
         }
-        if 'sync:%s' % (tree_loc,) in new_config:
-            conf['syncer'] = 'sync:%s' % (tree_loc,)
-        new_config['raw:' + tree_loc] = basics.AutoConfigSection(conf)
+        if 'sync:%s' % (repo_path,) in new_config:
+            conf['syncer'] = 'sync:%s' % (repo_path,)
+        if repo_path == repo_opts[default_opts['main-repo']]:
+            conf['default'] = True
+        new_config['raw:' + repo_path] = basics.AutoConfigSection(conf)
 
         # metadata cache
-        cache_name = 'cache:%s' % (tree_loc,)
-        new_config[cache_name] = make_cache(config_root, tree_loc)
+        cache_name = 'cache:%s' % (repo_path,)
+        new_config[cache_name] = make_cache(config_root, repo_path)
 
         # repo trees
         kwds = {
             'inherit': ('ebuild-repo-common',),
-            'raw_repo': ('raw:' + tree_loc),
+            'raw_repo': ('raw:' + repo_path),
             'class': 'pkgcore.ebuild.repository.tree',
             'cache': cache_name,
         }
 
-        new_config[tree_loc] = basics.AutoConfigSection(kwds)
+        new_config[repo_path] = basics.AutoConfigSection(kwds)
 
     # XXX: Hack for portage-2 profile format support. We need to figure out how
     # to dynamically create this from the config at runtime on attr access.
