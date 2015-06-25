@@ -726,6 +726,12 @@ class buildable(ebd, setup_mixin, format.build):
                             "Malformed cb_agent JSONRPC reply"))
 
                     if repl['status'] != 'success':
+                        try:
+                            assert(repl['status'] in ('failure', ))
+                            assert('error' in repl)
+                        except AssertionError, KeyError:
+                            raise_from(format.GenericBuildError(
+                                "Malformed cb_agent JSONRPC reply"))
                         raise_from(format.GenericBuildError(
                             "cb-agent fetch failed: %s" % repl['error']))
 
