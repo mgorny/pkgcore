@@ -47,13 +47,25 @@ try:
 except KeyError:
     pass
 
-# Discover the uid and gid of the portage user/group
-try:
-    portage_uid = pwd.getpwnam("portage").pw_uid
-    portage_gid = grp.getgrnam("portage").gr_gid
-    portage_user_groups = tuple(x.gr_name for x in grp.getgrall()
-                                if 'portage' in x.gr_mem)
-except KeyError:
-    portage_uid = 0
-    portage_gid = wheelgid
-    portage_user_groups = []
+# if we are root, we'd like to drop privileges to 'portage' whenever possible
+if uid == root_uid:
+    # Discover the uid and gid of the portage user/group
+    try:
+        portage_uid = pwd.getpwnam("portage").pw_uid
+        portage_gid = grp.getgrnam("portage").gr_gid
+        portage_user_groups = tuple(x.gr_name for x in grp.getgrall()
+                                    if 'portage' in x.gr_mem)
+    except KeyError:
+        portage_uid = 0
+        portage_gid = wheelgid
+        portage_user_groups = []
+else:
+    # otherwise, just put our current uid/gid/groups there to make
+    # the code happier
+    portage_uid = uid
+    portage_gid = os.getgid()
+    portage_user_groups = os.getgroups()
+
+    # we also want to assign root to us to fix ownership overrides
+    root_uid = uid
+    root_gid = portage_gid
