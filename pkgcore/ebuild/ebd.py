@@ -725,10 +725,10 @@ class buildable(ebd, setup_mixin, format.build):
                             szs = os.read(self.in_pipe_, 4)
                             sz, = struct.unpack('>L', szs)
                             s = os.read(self.in_pipe_, sz)
-                            return json.loads(s)
+                            return json.loads(s.decode('utf8'))
 
                         def write(self, val):
-                            s = json.dumps(val)
+                            s = json.dumps(val).encode('utf8')
                             szs = struct.pack('>L', len(s))
                             os.write(self.out_pipe_, szs)
                             os.write(self.out_pipe_, s)
