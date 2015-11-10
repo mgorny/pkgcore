@@ -595,8 +595,6 @@ class EbuildProcessor(object):
     def is_alive(self):
         """Returns if it's known if the processor has been shutdown."""
         try:
-            if self.pid is None:
-                return False
             try:
                 if process.is_running(self.pid):
                     self.write("alive", disable_runtime_exceptions=True)
@@ -604,7 +602,7 @@ class EbuildProcessor(object):
                         return True
             except process.ProcessNotFound:
                 # pid doesn't exist
-                self.pid = None
+                return False
             return False
 
         except (AttributeError, KeyboardInterrupt):
@@ -615,11 +613,11 @@ class EbuildProcessor(object):
         """
         tell the daemon to shut itself down, and mark this instance as dead
         """
+        if self.pid is None:
+            return
         kill = False
         try:
-            if self.pid is None:
-                return
-            elif self.is_alive:
+            if self.is_alive:
                 self.write("shutdown_daemon", disable_runtime_exceptions=True)
                 self.ebd_write.close()
                 self.ebd_read.close()
