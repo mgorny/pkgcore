@@ -42,13 +42,7 @@ __escape_regex_array() {
 } &> /dev/null
 
 __environ_list_vars() {
-	declare() {
-		local __ret=${2%%=*}
-		[[ $2 != ${__ret} ]] && echo "${__ret}"
-		:
-	}
-	eval "$(builtin declare -p)" || die "${FUNCNAME}: eval failed" >&2
-	unset -f declare
+	compgen -v
 	:
 }
 
@@ -74,7 +68,7 @@ __environ_dump() {
 		declare -f "${__PKGCORE_TARGETS[@]}" || die "failed outputting funcs ${__PKGCORE_TARGETS[@]}" >&2
 	fi
 
-	__PKGCORE_TARGETS=( $(__environ_list_vars | __regex_filter_input ${DONT_EXPORT_VARS} __PKGCORE_TARGETS) )
+	__PKGCORE_TARGETS=( $(__environ_list_vars | __regex_filter_input ${DONT_EXPORT_VARS} ) )
 	if [[ ${#__PKGCORE_TARGETS[@]} -ne 0 ]]; then
 		declare -p "${__PKGCORE_TARGETS[@]}" || die "failed outputting env vars ${__PKGCORE_TARGETS[@]}" >&2
 	fi
