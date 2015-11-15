@@ -42,7 +42,7 @@ __source_was_seen() {
 }
 declare -a seen
 source() {
-	local fp=$(readlink -f "$1")
+	local fp=$1
 	__source_was_seen "${fp}" && return 0
 	# die relies on these vars; we reuse them.
 	local CATEGORY=${PKGCORE_BIN_PATH}

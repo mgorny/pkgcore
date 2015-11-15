@@ -4,7 +4,7 @@
 
 # protect against env screwups.
 if [[ -z ${PKGCORE_BIN_PATH} ]]; then
-	PKGCORE_BIN_PATH=$(readlink -f "${0}")
+	PKGCORE_BIN_PATH=${0}
 	# and go up 3, out of helpers.
 	PKGCORE_BIN_PATH=${PKGCORE_BIN_PATH%/*}
 	PKGCORE_BIN_PATH=${PKGCORE_BIN_PATH%/*}
