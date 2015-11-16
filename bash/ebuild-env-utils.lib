@@ -47,7 +47,11 @@ __environ_list_funcs() {
 }
 
 __environ_list_vars() {
-	compgen -v
+	local _var
+	while read -r _var; do
+		[[ ${_var} == _var ]] && continue
+		declare -p "${_var}" &>/dev/null && echo "${_var}"
+	done < <(compgen -v)
 	:
 }
 
