@@ -50,7 +50,7 @@ source() {
 
 # without this var, parsing certain things can fail; force to true
 # so any code that tried accessing it thinks it succeeded
-export PKGCORE_PYTHON_BINARY=/bin/true
+export PKGCORE_PYTHON_BINARY=$(type -P true)
 
 forced_order_source="isolated-functions.lib exit-handling.lib eapi/common.lib ebuild-daemon.lib ebuild-daemon.bash"
 
