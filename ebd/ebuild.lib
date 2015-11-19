@@ -322,7 +322,7 @@ __execute_phases() {
 	trap "exit 9" SIGQUIT
 	trap "exit 1" SIGTERM
 	trap "die 'a helper failed, see above'" SIGUSR1
-	declare -rx PKGCORE_EBUILD_PROCESS_PID=${BASHPID}
+	declare -rx PKGCORE_EBUILD_PROCESS_PID=$$
 
 	if __safe_has "${EAPI:-0}" 0 1 2 3; then
 		declare -rx PKGCORE_NONFATAL_HELPER=true

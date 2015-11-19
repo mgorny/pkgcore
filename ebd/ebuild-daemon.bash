@@ -31,7 +31,7 @@ die() {
 	exit 1
 }
 
-PKGCORE_EBD_PID=${BASHPID}
+PKGCORE_EBD_PID=$$
 # Use ebd_read/ebd_write for talking to the running pkgcore instance instead of
 # echo'ing to the fd yourself. This allows us to move the open fd's w/out
 # issues down the line.
