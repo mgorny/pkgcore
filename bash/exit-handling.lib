@@ -47,7 +47,7 @@ die() {
 
 	if [[ -z ${PKGCORE_IS_NOT_HELPER} ]]; then
 		# We're in a helper so enable helper specific output.
-		kill -10 ${PKGCORE_EBUILD_PROCESS_PID}
+		kill -s SIGUSR1 ${PKGCORE_EBUILD_PROCESS_PID}
 	elif [[ ${BASHPID} != ${PKGCORE_EBUILD_PROCESS_PID} ]]; then
 		local scope
 		if [[ -z ${PKGCORE_EBUILD_PROCESS_PID} ]]; then
