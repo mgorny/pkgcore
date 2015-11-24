@@ -446,11 +446,11 @@ class RepoConfig(syncable.tree):
         sf(self, 'aliases', tuple(iter_stable_unique(aliases)))
         sf(self, 'eapis_deprecated', tuple(iter_stable_unique(data.get('eapis-deprecated', '').split())))
 
-        v = set(data.get('cache-formats', 'pms').lower().split())
+        v = set(data.get('cache-formats', 'md5-dict').lower().split())
         if not v:
             v = [None]
         elif not v.intersection(self.supported_cache_formats):
-            v = ['pms']
+            v = ['md5-dict']
         sf(self, 'cache_format', list(v)[0])
 
         profile_formats = set(data.get('profile-formats', 'pms').lower().split())
