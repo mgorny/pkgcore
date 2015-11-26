@@ -524,4 +524,26 @@ best_version() {
 	PKGCORE_DISABLE_COMPAT=true portageq 'best_version' "$1"
 }
 
+ps-upload() {
+	local url=${1} path=${2}
+
+	echo "${PWD}"
+	[[ ${url} && ${path} ]] || die "Usage: ps-upload ps://url/remote-path local-path"
+	[[ -f ${path} ]] || die "upload: ${path} does not exist or is not a file"
+
+	[[ ${url} == ps://*/* ]] || die "upload: Invalid URL, ${url}"
+	# replace with absolute path
+	[[ ${path} != /* ]] && path=${PWD}/${path}
+
+	local line
+	__ebd_write_line "ps_upload ${url} ${path}"
+	__ebd_read_line line
+
+	case "${line}" in
+		ok) return 0;;
+		fail*) die "upload failed: ${line#fail }";;
+		*) die "upload: invalid reply ${line}";;
+	esac
+}
+
 :

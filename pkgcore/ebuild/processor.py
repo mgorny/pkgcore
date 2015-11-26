@@ -61,6 +61,7 @@ demandload(
     'snakeoil:fileutils',
     'snakeoil:process',
     'pkgcore.log:logger',
+    'pkgcore.util.agentrpc:agent_rpc_call',
 )
 
 
@@ -234,6 +235,29 @@ def chuck_StoppingCommand(val, processor, *args):
     if callable(val):
         raise FinishedProcessing(val(args[0]))
     raise FinishedProcessing(val)
+
+
+def handle_ps_upload(processor, line):
+    res = "ok"
+
+    try:
+        url, local_path = line.split(' ', 1)
+        assert url.startswith('ps://')
+        remote_id, remote_path = url[5:].split('/', 1)
+
+        request = {
+            'status': 'request',
+            'action': 'upload_results',
+            'remote_id': remote_id,
+            'local_path': local_path,
+            'remote_path': remote_path,
+        }
+        repl = agent_rpc_call(request)
+        if repl['status'] != 'success':
+            res = "fail %s" % repl['error']
+    except Exception as e:
+        res = "fail %s" % e
+    processor.write(res)
 
 
 class TimeoutError(Exception):
@@ -821,6 +845,7 @@ class EbuildProcessor(object):
 
         handlers["killed"] = chuck_KeyboardInterrupt
         handlers["term"] = chuck_TermInterrupt
+        handlers["ps_upload"] = handle_ps_upload
 
         if additional_commands is not None:
             for x in additional_commands:
