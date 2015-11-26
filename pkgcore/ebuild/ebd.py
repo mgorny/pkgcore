@@ -35,14 +35,13 @@ from pkgcore.spawn import (
     spawn_bash, spawn, is_sandbox_capable, is_userpriv_capable, spawn_get_output)
 
 demandload(
-    'json',
-    'struct',
     'textwrap',
     "time",
     'snakeoil.lists:iflatten_instance',
     'pkgcore:fetch',
     "pkgcore.log:logger",
     "pkgcore.package.mutated:MutatedPkg",
+    "pkgcore.util.agentrpc:agent_rpc_call",
 )
 
 
@@ -679,30 +678,6 @@ class buildable(ebd, setup_mixin, format.build):
                 continue
             for uri in fetchable.uri:
                 if uri.startswith('ps://'):
-                    if 'CB_AGENT_RPC_FDS' not in os.environ:
-                        raise_from(format.GenericBuildError(
-                            "CB_AGENT_RPC_FDS are not provided by cb-agent"))
-
-                    class JsonRPC(object):
-                        def __init__(self, in_pipe, out_pipe):
-                            self.in_pipe_ = in_pipe
-                            self.out_pipe_ = out_pipe
-
-                        def read(self):
-                            szs = os.read(self.in_pipe_, 4)
-                            sz, = struct.unpack('>L', szs)
-                            s = os.read(self.in_pipe_, sz)
-                            return json.loads(s.decode('utf8'))
-
-                        def write(self, val):
-                            s = json.dumps(val).encode('utf8')
-                            szs = struct.pack('>L', len(s))
-                            os.write(self.out_pipe_, szs)
-                            os.write(self.out_pipe_, s)
-
-                    rpc_fds = [int(x) for x in os.environ['CB_AGENT_RPC_FDS'].split()]
-                    rpc = JsonRPC(*rpc_fds)
-
                     # mirrors must not be applied here
                     assert(len(fetchable.uri) == 1)
                     res_id = uri[5:]
@@ -715,23 +690,9 @@ class buildable(ebd, setup_mixin, format.build):
                         'uid': portage_uid,
                         'gid': portage_gid,
                     }
-                    rpc.write(request)
-
-                    try:
-                        repl = rpc.read()
-                        assert(repl['action'] == 'fetch_sources')
-                        assert(repl['repo_id'] == res_id)
-                    except (KeyError, ValueError, AssertionError):
-                        raise_from(format.GenericBuildError(
-                            "Malformed cb_agent JSONRPC reply"))
+                    repl = agent_rpc_call(request)
 
                     if repl['status'] != 'success':
-                        try:
-                            assert(repl['status'] in ('failure', ))
-                            assert('error' in repl)
-                        except AssertionError, KeyError:
-                            raise_from(format.GenericBuildError(
-                                "Malformed cb_agent JSONRPC reply"))
                         raise_from(format.GenericBuildError(
                             "cb-agent fetch failed: %s" % repl['error']))
 
