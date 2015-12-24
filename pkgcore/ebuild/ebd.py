@@ -696,6 +696,14 @@ class buildable(ebd, setup_mixin, format.build):
                         raise_from(format.GenericBuildError(
                             "cb-agent fetch failed: %s" % repl['error']))
 
+    def set_pathscale_variables(self):
+        # Pass agent environment through whenever it was filtered
+        # by pkgcore. Do not pass variables that are in self.env[]
+        # already since they could have been mangled (e.g. PATH).
+        for k in os.environ['CB_AGENT_VARIABLES'].split():
+            if k not in self.env:
+                self.env[k] = os.environ[k]
+
     @observer.decorate_build_method("setup")
     def setup(self):
         """
@@ -761,6 +769,8 @@ class buildable(ebd, setup_mixin, format.build):
                 raise_from(format.FailedDirectory(
                     self.env["CCACHE_DIR"],
                     "failed ensuring perms/group owner for CCACHE_DIR"))
+
+        self.set_pathscale_variables()
 
         return setup_mixin.setup(self)
 
