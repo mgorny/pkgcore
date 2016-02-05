@@ -21,6 +21,7 @@ __all__ = (
     "fix_uid_perms",
     "ldconfig",
     "merge",
+    "platform",
     "unmerge",
     "InfoRegen",
 )
