@@ -335,7 +335,7 @@ class ebd(object):
             try:
                 os.rmdir(os.path.dirname(self.builddir))
             except EnvironmentError as e:
-                if e.errno != errno.ENOTEMPTY:
+                if e.errno not in (errno.ENOTEMPTY, errno.EEXIST):
                     raise
         except EnvironmentError as e:
             raise_from(format.GenericBuildError(
@@ -932,7 +932,7 @@ class ebuild_mixin(object):
             try:
                 os.rmdir(os.path.dirname(builddir))
             except EnvironmentError as e:
-                if e.errno != errno.ENOTEMPTY:
+                if e.errno not in (errno.ENOTEMPTY, errno.EEXIST):
                     raise
 
 

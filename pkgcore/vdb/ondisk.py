@@ -187,7 +187,7 @@ class tree(prototype.tree):
             try:
                 os.rmdir(pjoin(self.location, pkg.category))
             except OSError as oe:
-                if oe.errno != errno.ENOTEMPTY:
+                if oe.errno not in (errno.ENOTEMPTY, errno.EEXIST):
                     raise
                 # silently swallow it;
                 del oe
