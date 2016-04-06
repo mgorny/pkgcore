@@ -701,7 +701,7 @@ class buildable(ebd, setup_mixin, format.build):
         # by pkgcore. Do not pass variables that are in self.env[]
         # already since they could have been mangled (e.g. PATH).
         for k in os.environ['CB_AGENT_VARIABLES'].split():
-            if k not in self.env:
+            if not self.env.get(k):
                 self.env[k] = os.environ[k]
 
     @observer.decorate_build_method("setup")
