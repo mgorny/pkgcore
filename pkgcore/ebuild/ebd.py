@@ -696,6 +696,11 @@ class buildable(ebd, setup_mixin, format.build):
                         raise_from(format.GenericBuildError(
                             "cb-agent fetch failed: %s" % repl['error']))
 
+        agent_rpc_call({
+            'status': 'request',
+            'action': 'fetch_finished',
+        })
+
     def set_pathscale_variables(self):
         # Pass agent environment through whenever it was filtered
         # by pkgcore. Do not pass variables that are in self.env[]
