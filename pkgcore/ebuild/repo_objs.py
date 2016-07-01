@@ -558,6 +558,14 @@ class RepoConfig(syncable.tree):
         return result
 
     @klass.jit_attr
+    def pms_repo_name(self):
+        """ repo_name from profiles/repo_name (as defined by the PMS) """
+        val = readfile(pjoin(self.profiles_base, 'repo_name'), True)
+        if val is not None:
+            val = val.strip()
+        return val
+
+    @klass.jit_attr
     def repo_id(self):
         """Main identifier for the repo.
 
