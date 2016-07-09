@@ -694,7 +694,7 @@ class buildable(ebd, setup_mixin, format.build):
 
                     if repl['status'] != 'success':
                         raise_from(format.GenericBuildError(
-                            "cb-agent fetch failed: %s" % repl['error']))
+                            "[%s] cb-agent fetch failed: %s" % (res_id, repl['error'])))
 
         agent_rpc_call({
             'status': 'request',
