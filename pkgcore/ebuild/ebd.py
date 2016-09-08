@@ -679,7 +679,7 @@ class buildable(ebd, setup_mixin, format.build):
             for uri in fetchable.uri:
                 if uri.startswith('ps://'):
                     # mirrors must not be applied here
-                    assert(len(fetchable.uri) == 1)
+                    assert(len(frozenset(fetchable.uri)) == 1)
                     res_id = uri[5:]
 
                     request = {
@@ -695,6 +695,7 @@ class buildable(ebd, setup_mixin, format.build):
                     if repl['status'] != 'success':
                         raise_from(format.GenericBuildError(
                             "[%s] cb-agent fetch failed: %s" % (res_id, repl['error'])))
+                    break
 
         agent_rpc_call({
             'status': 'request',
